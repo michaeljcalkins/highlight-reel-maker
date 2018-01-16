@@ -1,0 +1,27 @@
+{
+  "name": "ReactEcho",
+  "private": true,
+  "version": "0.0.0",
+  "main": "src/main.js",
+  "scripts": {
+    "test": "NODE_ENV=test mocha --require babel-core/register src/browser/js/**/*.test.js",
+    "test-watch": "nodemon -q -x 'npm test'",
+    "dev": "nodemon --ignore 'src/**.js' --watch 'resources/**/*.*' -q -x 'babel resources/js --out-dir src/js --presets=latest,react --plugins=transform-object-rest-spread,transform-class-properties,transform-es2015-classes,transform-runtime --ignore test.js && gulp'",
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron-builder": "^2.6.0",
+    "electron-packager": "^5.0.2",
+    "electron-prebuilt": "0.36.7",
+    "open": "0.0.5"
+  },
+  "dependencies": {
+    "electron-dl": "^1.8.0",
+    "electron-is-dev": "^0.1.2",
+    "electron-settings": "^3.0.14",
+    "ffprobe": "^1.1.0",
+    "ffprobe-static": "^2.0.0",
+    "lodash": "^4.0.0",
+    "touch": "^3.1.0"
+  }
+}

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Vendor  CSS -->
+  <link href='https://fonts.googleapis.com/css?family=Roboto:400,400italic,700,700italic' rel='stylesheet'>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-beta.2/css/bootstrap.css" rel="stylesheet">
+
+  <!-- Custom CSS -->
+  <link href="app.css" rel="stylesheet">
+</head>
+
+<body>
+  <div class="container-fluid" id="app">
+    <div v-if="!isRendering">
+      <div class="row" style="position: absolute; top: 0; left: 15px; right: 15px; bottom: 0;">
+        <div class=" col-sm-4">
+          <div class="row" style="margin-bottom: 15px; ">
+            <div class="col-sm-12">
+              <h6 class="mt38">Add Photos and Videos
+                <button class="btn btn-sm btn-link float-right" style="margin-top: -8px;" v-on:click="shuffleVideos() ">Shuffle Videos</button>
+              </h6>
+
+              <button class="btn btn-block btn-primary mb15" v-on:click="importVideoFiles() ">Select video files</button>
+
+              <div style="overflow-y: auto; max-height: 250px;">
+                <draggable :list="list ">
+                  <div class="card " v-for="(element, key) in list ">
+                    <div class="card-body ">
+                      <span style="margin-top: 6px; display: inline-block; ">
+                        <small>{{element.name}}</small>
+                      </span>
+                      <br />
+                      <button class="btn btn-link float-right btn-sm" v-on:click="removeVideo(key)">Remove</button>
+                      <button class="btn btn-link disabled float-right btn-sm" style="cursor: pointer">{{getFormattedDuration(element.streams[0].duration)}}</button>
+                    </div>
+                  </div>
+                </draggable>
+              </div>
+
+              <hr />
+
+              <h6>Add a Soundtrack</h6>
+
+              <button class="btn btn-block btn-primary mb15" v-on:click="importAudioFile() ">Select audio file</button>
+
+              <div class="card " v-if="audioFile">
+                <div class="card-body ">
+                  <span style="margin-top: 6px; display: inline-block; ">
+                    <small>{{audioFile.name}}</small>
+                  </span>
+                  <br />
+                  <button class="btn btn-link float-right btn-sm" v-on:click="removeAudioFile()">Remove</button>
+                  <button class="btn btn-link disabled float-right btn-sm" style="cursor: pointer">3:02</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="text-center bgw" style="position: absolute; bottom: 5px; left: 15px; right: 15px;">
+            <hr />
+            <button class="btn btn-block btn-success mt15" v-on:click="startCreatingVideo() ">Create Video</button>
+            <small class="text-muted">Video Length: {{getFormattedDuration(videoLength)}}</small>
+          </div>
+        </div>
+        <div class="col-sm-8" style="background: #EFF3F8;">
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-12 " v-if="isRendering ">
+      <h1>Rendering video...</h1>
+    </div>
+  </div>
+
+  <!-- CDN Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.3/vue.min.js "></script>
+  <script src="https://cdn.jsdelivr.net/sortable/1.4.2/Sortable.min.js "></script>
+  <script src="https://unpkg.com/vuedraggable@2.16.0/dist/vuedraggable.js "></script>
+  <script>require('./app.js')</script>
+</body>
+
+</html>
