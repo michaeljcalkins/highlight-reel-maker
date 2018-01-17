@@ -18,7 +18,7 @@
 <body>
   <div id="app">
     <div v-if="!isRendering" class="container-fluid">
-      <div class="text-align: center;" style="position: absolute; top: 0; bottom: 346px; left: 15px; right: 15px; padding: 38px 0 0;">
+      <div class="text-align: center;" style="position: absolute; top: 0; bottom: 355px; left: 15px; right: 15px; padding: 38px 0 0;">
         <div class="embed-responsive embed-responsive-16by9" style="margin: 0 auto 0; max-height: 100%; max-width: 100%;">
           <div v-if="isPreviewRendering" class="embed-responsive-item text-center" style="transform: translateY(50%)">
             <i class=" fa fa-refresh fa-spin fa-5x fa-fw"></i>
@@ -31,7 +31,7 @@
         </div>
       </div>
 
-      <div class="row" style="position: absolute; bottom: 268px; left: 15px; right: 15px; padding: 15px 0; ">
+      <div class="row" style="position: absolute; bottom: 288px; left: 15px; right: 15px; padding: 15px 0; ">
         <div class="col-sm-12 text-center ">
           <button class="btn btn-link btn-lg border border-primary border-left-0 border-right-0 border-top-0 rounded-0" v-on:click="setActiveView( 'videos')"
             v-bind:class="{'border-bottom-0': activeView != 'videos'}">
@@ -44,11 +44,12 @@
         </div>
       </div>
 
-      <div v-if="activeView=='videos' " class="row bgb2" style="height: 200px; position: absolute; bottom: 68px; left: 15px; right: 15px; padding: 15px 0; ">
+      <div v-if="activeView=='videos' " class="row bgb2" style="height: 220px; position: absolute; bottom: 68px; left: 15px; right: 15px; padding: 15px 0; ">
         <div class="col-sm-12 ">
-          <h6>Add Photos and Videos
-            <button class="btn btn-sm btn-primary float-right " v-on:click="importVideoFiles() ">Select video files</button>
-            <button class="btn btn-sm btn-link float-right tcw " v-on:click="shuffleVideos() ">Shuffle Videos</button>
+          <h6 style="line-height: 36px;">
+            Add Photos and Videos
+            <button class="btn btn-sm btn-primary float-right " v-on:click="importVideoFiles() ">Select files</button>
+            <button class="btn btn-sm btn-link float-right tcw " v-on:click="shuffleVideos() ">Shuffle</button>
           </h6>
 
           <div id="parent">
@@ -66,23 +67,22 @@
         </div>
       </div>
 
-      <div v-if="activeView=='audio' " class="row bgb2 " style="height: 200px; position: absolute; bottom: 68px; left: 15px; right: 15px; padding: 15px 0; ">
+      <div v-if="activeView=='audio' " class="row bgb2 " style="height: 220px; position: absolute; bottom: 68px; left: 15px; right: 15px; padding: 15px 0; ">
         <div class="col-sm-12 ">
-          <h6>
+          <h6 style="line-height: 36px;">
             Add a Soundtrack
             <button class="btn btn-sm float-right btn-primary " v-on:click="importAudioFile() ">Select audio file</button>
           </h6>
 
-          <div class="card " v-if="audioFile ">
-            <div class="card-body ">
-              <span style="margin-top: 6px; display: inline-block; ">
-                <small>{{audioFile.name}}</small>
-              </span>
-              <br />
-              <button class="btn btn-link float-right btn-sm " v-on:click="removeAudioFile() ">Remove</button>
-              <button class="btn btn-link disabled float-right btn-sm " style="cursor: pointer ">3:02</button>
-            </div>
-          </div>
+          <audio controls="controls" v-if="audioFile !== null">
+            Your browser does not support the
+            <code>audio</code> element.
+            <source :src="audioFile.name" type="audio/wav">
+          </audio>
+
+          <!-- <small>{{audioFile.name}}</small>
+          <button class="btn btn-link float-right btn-sm " v-on:click="removeAudioFile() ">Remove</button>
+          <button class="btn btn-link disabled float-right btn-sm " style="cursor: pointer ">3:02</button> -->
         </div>
       </div>
 
@@ -103,7 +103,9 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.3/vue.js "></script>
   <script src="https://cdn.jsdelivr.net/sortable/1.4.2/Sortable.min.js "></script>
   <script src="https://unpkg.com/vuedraggable@2.16.0/dist/vuedraggable.js "></script>
-  <script>require('./app.js')</script>
+  <script>
+    require('./app.js')
+  </script>
 </body>
 
 </html>

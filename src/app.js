@@ -10,6 +10,7 @@ const path = require("path");
 const ffprobe = require("ffprobe");
 const ffprobeStatic = require("ffprobe-static");
 const sanitize = require("sanitize-filename");
+const isImage = require("is-image");
 
 new Vue({
   el: "#app",
@@ -26,7 +27,7 @@ new Vue({
       // `this` points to the vm instance
       return this.list
         .map(function(item) {
-          return _.get(item, "streams[0].duration");
+          return item.duration;
         })
         .reduce(function(total, num) {
           return total + Number(num);
@@ -47,15 +48,11 @@ new Vue({
       this.audioFile = {
         name: openedFile[0]
       };
-
-      self.startCreatingVideo(true);
     },
     removeAudioFile: function() {
       this.audioFile = null;
-      self.startCreatingVideo(true);
     },
     getImageThumbnail(file) {
-      console.log(file);
       return path.join(app.getPath("downloads"), sanitize(file) + ".png");
     },
     createVideoThumbnail: function(file) {
@@ -91,8 +88,11 @@ new Vue({
         function(file, callback) {
           ffprobe(file, { path: ffprobeStatic.path })
             .then(function(info) {
+              const isFileImage = isImage(file);
               self.list.push({
                 name: file,
+                duration: isFileImage ? 2 : _.get(item, "streams[0].duration"),
+                isImage: isFileImage,
                 streams: info.streams
               });
               self.createVideoThumbnail(file);
@@ -111,6 +111,7 @@ new Vue({
             console.log("A file failed to process");
           } else {
             self.startCreatingVideo(true);
+            self.$forceUpdate();
           }
         }
       );
@@ -243,6 +244,10 @@ new Vue({
       const finalVideoFile = path.join(app.getPath("downloads"), "final.mp4");
       this.list.forEach(function(file) {
         fs.appendFileSync(videosTextFile, "file '" + file.name + "'\n");
+
+        if (file.isFileImage) {
+          fs.appendFileSync(videosTextFile, "duration 3\n");
+        }
       });
     }
   }

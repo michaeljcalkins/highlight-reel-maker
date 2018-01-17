@@ -21,6 +21,7 @@
     "electron-settings": "^3.0.14",
     "ffprobe": "^1.1.0",
     "ffprobe-static": "^2.0.0",
+    "is-image": "^2.0.0",
     "lodash": "^4.0.0",
     "sanitize-filename": "^1.6.1",
     "touch": "^3.1.0"

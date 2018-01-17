@@ -1065,6 +1065,10 @@ i@0.3.x:
   version "0.3.5"
   resolved "https://registry.yarnpkg.com/i/-/i-0.3.5.tgz#1d2b854158ec8169113c6cb7f6b6801e99e211d5"
 
+image-extensions@^1.0.1:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/image-extensions/-/image-extensions-1.1.0.tgz#b8e6bf6039df0056e333502a00b6637a3105d894"
+
 image-size@^0.5.0:
   version "0.5.1"
   resolved "https://registry.yarnpkg.com/image-size/-/image-size-0.5.1.tgz#28eea8548a4b1443480ddddc1e083ae54652439f"
@@ -1119,6 +1123,12 @@ is-fullwidth-code-point@^1.0.0:
   resolved "https://registry.yarnpkg.com/is-fullwidth-code-point/-/is-fullwidth-code-point-1.0.0.tgz#ef9e31386f031a7f0d643af82fde50c457ef00cb"
   dependencies:
     number-is-nan "^1.0.0"
+
+is-image@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/is-image/-/is-image-2.0.0.tgz#454c9569578de31869371fbfaea4958f461b3e0c"
+  dependencies:
+    image-extensions "^1.0.1"
 
 is-my-json-valid@^2.12.0, is-my-json-valid@^2.13.1:
   version "2.16.0"
