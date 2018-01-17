@@ -25,7 +25,7 @@
           </div>
 
           <video v-if="!isPreviewRendering " style="box-shadow: 0 1px 10px 2px rgba(0, 0, 0, 0.3); " class="embed-responsive-item "
-            controls id="video " autoplay="false ">
+            controls id="video ">
             <source id="source " src="file:///Users/michaelcalkins/Downloads/final.mp4 " />
           </video>
         </div>
@@ -33,10 +33,12 @@
 
       <div class="row" style="position: absolute; bottom: 268px; left: 15px; right: 15px; padding: 15px 0; ">
         <div class="col-sm-12 text-center ">
-          <button class="btn btn-link btn-lg " v-on:click="setActiveView( 'videos') ">
+          <button class="btn btn-link btn-lg border border-primary border-left-0 border-right-0 border-top-0 rounded-0" v-on:click="setActiveView( 'videos') "
+            v-bind:class="{'border-bottom-0': activeView != 'videos'}">
             <i class="fa fa-film tcw "></i>
           </button>
-          <button class="btn btn-link btn-lg " v-on:click="setActiveView( 'audio') ">
+          <button class="btn btn-link btn-lg border border-primary border-left-0 border-right-0 border-top-0 rounded-0" v-on:click="setActiveView( 'audio') "
+            v-bind:class="{'border-bottom-0': activeView != 'audio'}">
             <i class="fa fa-music tcw "></i>
           </button>
         </div>
