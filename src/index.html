@@ -53,9 +53,11 @@
 
           <div id="parent">
             <div id="stretchable-div">
-              <div class="child" v-bind:title="element.name" v-for="(element, key) in list" style="background-image: url(http://youpresent.co.uk/wp-content/uploads/2014/09/PowerPoint-slide-16-by-9-585x329.png)">
+              <div class="child bgb2" :title="element.name" :style="{ 
+                  backgroundImage: 'url(\'file://' + getImageThumbnail(element.name) + '\')' 
+                }" v-for="(element, key) in list">
                 <!-- <small class="text-muted ">{{getFormattedDuration(element.streams[0].duration)}}</small> -->
-                <button class="btn btn-link btn-sm" style="position: absolute; top: 5px; right: 5px;" v-on:click="removeVideo(key) ">
+                <button class="btn btn-danger btn-sm" style="position: absolute; top: 5px; right: 5px;" v-on:click="removeVideo(key) ">
                   <i class=" fa fa-trash"></i>
                 </button>
               </div>
@@ -98,7 +100,7 @@
   </div>
 
   <!-- CDN Scripts -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.3/vue.min.js "></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.3/vue.js "></script>
   <script src="https://cdn.jsdelivr.net/sortable/1.4.2/Sortable.min.js "></script>
   <script src="https://unpkg.com/vuedraggable@2.16.0/dist/vuedraggable.js "></script>
   <script>require('./app.js')</script>

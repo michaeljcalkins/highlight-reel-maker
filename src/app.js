@@ -9,7 +9,7 @@ const app = require("electron").remote.app;
 const path = require("path");
 const ffprobe = require("ffprobe");
 const ffprobeStatic = require("ffprobe-static");
-const touch = require("touch");
+const sanitize = require("sanitize-filename");
 
 new Vue({
   el: "#app",
@@ -54,6 +54,31 @@ new Vue({
       this.audioFile = null;
       self.startCreatingVideo(true);
     },
+    getImageThumbnail(file) {
+      console.log(file);
+      return path.join(app.getPath("downloads"), sanitize(file) + ".png");
+    },
+    createVideoThumbnail: function(file) {
+      let self = this;
+      const imageFile = path.join(app.getPath("downloads"), sanitize(file) + ".png");
+      exec(
+        __dirname + "/ffmpeg -i '" + file + "' -ss 00:00:00 -vframes 1 '" + imageFile + "'",
+        (err, stdout, stderr) => {
+          if (err) {
+            // node couldn't execute the command
+            console.log(err);
+            return;
+          }
+
+          // the *entire* stdout and stderr (buffered)
+          console.log(`stdout: ${stdout}`);
+          console.log(`stderr: ${stderr}`);
+          self.$forceUpdate();
+        }
+      );
+
+      return imageFile;
+    },
     importVideoFiles: function() {
       self = this;
       var openedFiles = dialog.showOpenDialog({
@@ -70,6 +95,7 @@ new Vue({
                 name: file,
                 streams: info.streams
               });
+              self.createVideoThumbnail(file);
               callback();
             })
             .catch(function(err) {
@@ -152,12 +178,14 @@ new Vue({
           var video = document.getElementById("video");
           var source = document.getElementById("source");
 
-          video.pause();
+          if (video) {
+            video.pause();
 
-          source.setAttribute("src", "file:///Users/michaelcalkins/Downloads/final.mp4");
+            source.setAttribute("src", "file:///Users/michaelcalkins/Downloads/final.mp4");
 
-          video.load();
-          video.play();
+            video.load();
+            video.play();
+          }
         }
       );
     },
