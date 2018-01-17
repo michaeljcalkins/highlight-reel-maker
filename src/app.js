@@ -14,7 +14,9 @@ const touch = require("touch");
 new Vue({
   el: "#app",
   data: {
+    activeView: "videos",
     isRendering: false,
+    isPreviewRendering: false,
     list: [],
     audioFile: null
   },
@@ -32,6 +34,9 @@ new Vue({
     }
   },
   methods: {
+    setActiveView: function(view) {
+      this.activeView = view;
+    },
     importAudioFile: function() {
       self = this;
       var openedFile = dialog.showOpenDialog({
@@ -42,9 +47,12 @@ new Vue({
       this.audioFile = {
         name: openedFile[0]
       };
+
+      self.startCreatingVideo(true);
     },
     removeAudioFile: function() {
       this.audioFile = null;
+      self.startCreatingVideo(true);
     },
     importVideoFiles: function() {
       self = this;
@@ -53,18 +61,35 @@ new Vue({
       });
       if (!openedFiles) return;
 
-      openedFiles.forEach(function(file) {
-        ffprobe(file, { path: ffprobeStatic.path })
-          .then(function(info) {
-            self.list.push({
-              name: file,
-              streams: info.streams
+      let newFileList = [];
+      async.each(
+        openedFiles,
+        function(file, callback) {
+          ffprobe(file, { path: ffprobeStatic.path })
+            .then(function(info) {
+              newFileList.push({
+                name: file,
+                streams: info.streams
+              });
+              callback();
+            })
+            .catch(function(err) {
+              console.error(err);
+              callback();
             });
-          })
-          .catch(function(err) {
-            console.error(err);
-          });
-      });
+        },
+        function(err) {
+          // if any of the file processing produced an error, err would equal that error
+          if (err) {
+            // One of the iterations produced an error.
+            // All processing will now stop.
+            console.log("A file failed to process");
+          } else {
+            self.list = newFileList;
+            self.startCreatingVideo(true);
+          }
+        }
+      );
     },
     getFormattedDuration: function(duration) {
       if (duration <= 0) return "0:00";
@@ -77,25 +102,39 @@ new Vue({
     },
     shuffleVideos: function() {
       this.list = _.shuffle(this.list);
+      self.startCreatingVideo(true);
     },
     removeVideo: function(index) {
       this.list.splice(index, 1);
+      self.startCreatingVideo(true);
     },
-    startCreatingVideo: function() {
+    startCreatingVideo: function(isPreview) {
+      isPreview = isPreview || false;
       const self = this;
-      this.isRendering = true;
+
+      if (!isPreview) {
+        this.isRendering = true;
+      } else {
+        this.isPreviewRendering = true;
+      }
 
       try {
         fs.unlinkSync(path.join(app.getPath("downloads"), "final.mp4"));
-      } catch (e) {}
+      } catch (e) {
+        console.error("Couldn't delete final.mp4");
+      }
 
       try {
-        fs.unlinkSync(path.join(app.getPath("downloads"), "finalwithmusic.mp4"));
-      } catch (e) {}
+        fs.unlinkSync(path.join(app.getPath("downloads"), "finalwithaudio.mp4"));
+      } catch (e) {
+        console.error("Couldn't delete finalwithaudio.mp4");
+      }
 
       try {
         fs.unlinkSync(path.join(app.getPath("downloads"), "videos.txt"));
-      } catch (e) {}
+      } catch (e) {
+        console.error("Couldn't delete videos.txt");
+      }
 
       async.parallel(
         [
@@ -104,78 +143,81 @@ new Vue({
             callback();
           },
           function(callback) {
-            self.createOutputVideo(callback);
-          },
-          function(callback) {
-            self.addMusicToOutputVideo(callback);
+            self.createOutputVideo(isPreview, callback);
           }
         ],
         function(err, results) {
           console.log("Video successfully created...");
           self.isRendering = false;
+          self.isPreviewRendering = false;
+
+          var video = document.getElementById("video");
+          var source = document.getElementById("source");
+
+          video.pause();
+
+          source.setAttribute("src", "file:///Users/michaelcalkins/Downloads/final.mp4");
+
+          video.load();
+          video.play();
         }
       );
     },
-    createOutputVideo: function(cb) {
+    createOutputVideo: function(isPreview, cb) {
       console.log("Stitching together videos...");
+
+      // audio volume in percentage https://trac.ffmpeg.org/wiki/AudioVolume
 
       const self = this;
       const videosTextFile = path.join(app.getPath("downloads"), "videos.txt");
       const finalVideoFile = path.join(app.getPath("downloads"), "final.mp4");
-
-      exec(
-        __dirname + "/ffmpeg -f concat -safe 0 -i " + videosTextFile + " -c:a copy " + finalVideoFile,
-        (err, stdout, stderr) => {
-          self.isRendering = false;
-          if (err) {
-            // node couldn't execute the command
-            console.log(err);
-            return;
-          }
-
-          // the *entire* stdout and stderr (buffered)
-          console.log(`stdout: ${stdout}`);
-          console.log(`stderr: ${stderr}`);
-          cb && cb();
-        }
-      );
-    },
-    createListOfVideos: function() {
-      const videosTextFile = path.join(app.getPath("downloads"), "videos.txt");
-      const finalVideoFile = path.join(app.getPath("downloads"), "final.mp4");
-
-      this.list.forEach(function(file) {
-        fs.appendFileSync(videosTextFile, "file '" + file.name + "'\n");
-      });
-    },
-    addMusicToOutputVideo: function(cb) {
-      console.log("Adding music...");
       const finalVideoFileWithAudio = path.join(app.getPath("downloads"), "finalwithaudio.mp4");
-      const finalVideoFile = path.join(app.getPath("downloads"), "final.mp4");
+      const scalingCommand = isPreview ? "-vf scale=320:-1" : "";
 
-      exec(
+      const createVideoCommand =
         __dirname +
+        "/ffmpeg -f concat -safe 0 -i '" +
+        videosTextFile +
+        "' " +
+        scalingCommand +
+        " -c:a copy " +
+        finalVideoFile;
+      const addAudioCommand = this.audioFile
+        ? __dirname +
           "/ffmpeg -i '" +
           finalVideoFile +
           "' -i '" +
           this.audioFile.name +
-          "' -c:v copy -c:a aac -strict experimental -t 30 '" +
-          finalVideoFileWithAudio +
-          "'",
-        (err, stdout, stderr) => {
-          self.isRendering = false;
-          if (err) {
-            // node couldn't execute the command
-            console.log(err);
-            return;
-          }
+          "' " +
+          scalingCommand +
+          " " +
+          " -c:v copy -c:a copy aac -strict experimental -t " +
+          this.videoLength +
+          " '" +
+          finalVideoFile +
+          "'"
+        : "exit";
 
-          // the *entire* stdout and stderr (buffered)
-          console.log(`stdout: ${stdout}`);
-          console.log(`stderr: ${stderr}`);
-          cb && cb();
+      exec(createVideoCommand + " && " + addAudioCommand, (err, stdout, stderr) => {
+        self.isRendering = false;
+        if (err) {
+          // node couldn't execute the command
+          console.log(err);
+          return;
         }
-      );
+
+        // the *entire* stdout and stderr (buffered)
+        console.log(`stdout: ${stdout}`);
+        console.log(`stderr: ${stderr}`);
+        cb && cb();
+      });
+    },
+    createListOfVideos: function(listOfVideos) {
+      const videosTextFile = path.join(app.getPath("downloads"), "videos.txt");
+      const finalVideoFile = path.join(app.getPath("downloads"), "final.mp4");
+      this.list.forEach(function(file) {
+        fs.appendFileSync(videosTextFile, "file '" + file.name + "'\n");
+      });
     }
   }
 });
