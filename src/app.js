@@ -61,13 +61,12 @@ new Vue({
       });
       if (!openedFiles) return;
 
-      let newFileList = [];
       async.each(
         openedFiles,
         function(file, callback) {
           ffprobe(file, { path: ffprobeStatic.path })
             .then(function(info) {
-              newFileList.push({
+              self.list.push({
                 name: file,
                 streams: info.streams
               });
@@ -85,7 +84,6 @@ new Vue({
             // All processing will now stop.
             console.log("A file failed to process");
           } else {
-            self.list = newFileList;
             self.startCreatingVideo(true);
           }
         }

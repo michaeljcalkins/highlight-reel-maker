@@ -19,9 +19,9 @@
   <div id="app">
     <div v-if="!isRendering" class="container-fluid">
       <div class="text-align: center;" style="position: absolute; top: 0; bottom: 346px; left: 15px; right: 15px; padding: 38px 0 0;">
-        <div class="embed-responsive embed-responsive-16by9" style="margin: 0 auto 0;  max-height: 100%; max-width: 100%;">
+        <div class="embed-responsive embed-responsive-16by9" style="margin: 0 auto 0; max-height: 100%; max-width: 100%;">
           <div v-if="isPreviewRendering" class="embed-responsive-item text-center" style="transform: translateY(50%)">
-            <i class=" fa fa-refresh fa-spin fa-5x fa-fw "></i>
+            <i class=" fa fa-refresh fa-spin fa-5x fa-fw"></i>
           </div>
 
           <video v-if="!isPreviewRendering " style="box-shadow: 0 1px 10px 2px rgba(0, 0, 0, 0.3); " class="embed-responsive-item "
@@ -33,7 +33,7 @@
 
       <div class="row" style="position: absolute; bottom: 268px; left: 15px; right: 15px; padding: 15px 0; ">
         <div class="col-sm-12 text-center ">
-          <button class="btn btn-link btn-lg border border-primary border-left-0 border-right-0 border-top-0 rounded-0" v-on:click="setActiveView( 'videos') "
+          <button class="btn btn-link btn-lg border border-primary border-left-0 border-right-0 border-top-0 rounded-0" v-on:click="setActiveView( 'videos')"
             v-bind:class="{'border-bottom-0': activeView != 'videos'}">
             <i class="fa fa-film tcw "></i>
           </button>
@@ -51,15 +51,14 @@
             <button class="btn btn-sm btn-link float-right tcw " v-on:click="shuffleVideos() ">Shuffle Videos</button>
           </h6>
 
-          <div class="card " v-for="(element, key) in list ">
-            <img class="card-img " src="http://youpresent.co.uk/wp-content/uploads/2014/09/PowerPoint-slide-16-by-9-585x329.png
-            " alt="Card image cap ">
-            <div class="card-img-overlay ">
-              <h5 class="card-title ">{{element.name}}</h5>
-              <p class="card-text ">T
-                <small class="text-muted ">{{getFormattedDuration(element.streams[0].duration)}}</small>
-              </p>
-              <button class="btn btn-link float-right btn-sm " v-on:click="removeVideo(key) ">Remove</button>
+          <div id="parent">
+            <div id="stretchable-div">
+              <div class="child" v-bind:title="element.name" v-for="(element, key) in list" style="background-image: url(http://youpresent.co.uk/wp-content/uploads/2014/09/PowerPoint-slide-16-by-9-585x329.png)">
+                <!-- <small class="text-muted ">{{getFormattedDuration(element.streams[0].duration)}}</small> -->
+                <button class="btn btn-link btn-sm" style="position: absolute; top: 5px; right: 5px;" v-on:click="removeVideo(key) ">
+                  <i class=" fa fa-trash"></i>
+                </button>
+              </div>
             </div>
           </div>
         </div>

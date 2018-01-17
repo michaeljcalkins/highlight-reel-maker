@@ -43,13 +43,26 @@ html {
   align-items: center;
 }
 
-hr {
-  margin-left: -15px;
-  margin-right: -15px;
-  border-color: #ebeaee;
+#parent {
+  width: 100%;
+  height: 136px;
+  overflow-x: scroll;
+  overflow-y: hidden;
 }
 
-.card {
-  margin-bottom: 10px;
-  word-break: break-all;
+#stretchable-div {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.child {
+  background: blue;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  position: relative;
+  width: 242px;
+  height: 136px;
+  margin-right: 10px;
+  display: inline-block;
 }
