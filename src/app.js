@@ -11,17 +11,26 @@ const ffprobe = require("ffprobe");
 const ffprobeStatic = require("ffprobe-static");
 const sanitize = require("sanitize-filename");
 const isImage = require("is-image");
+const draggable = require("vuedraggable");
 
 new Vue({
   el: "#app",
+  components: {
+    draggable
+  },
   data: {
     activeView: "videos",
+    activeElement: null,
     isRendering: false,
     isPreviewRendering: false,
     list: [],
+    videoName: "Untitled",
     audioFile: null
   },
   computed: {
+    currentVideoName: function() {
+      return "file:///Users/michaelcalkins/Downloads/" + this.videoName + ".mp4";
+    },
     // a computed getter
     videoLength: function() {
       // `this` points to the vm instance
@@ -35,8 +44,20 @@ new Vue({
     }
   },
   methods: {
+    onMoved: function() {
+      this.startCreatingVideo(true);
+    },
     setActiveView: function(view) {
       this.activeView = view;
+    },
+    setActiveElement: function(element) {
+      this.activeElement = _.cloneDeep(element);
+    },
+    copyActiveElementToElementList: function() {
+      const activeIndex = _.findIndex(this.list, { id: this.activeElement.id });
+      this.list.splice(activeIndex, 1, this.activeElement);
+      this.setActiveElement(null);
+      this.startCreatingVideo(true);
     },
     importAudioFile: function() {
       self = this;
@@ -55,7 +76,7 @@ new Vue({
     getImageThumbnail(file) {
       return path.join(app.getPath("downloads"), sanitize(file) + ".png");
     },
-    createVideoThumbnail: function(file) {
+    createVideoThumbnail: function(file, cb) {
       let self = this;
       const imageFile = path.join(app.getPath("downloads"), sanitize(file) + ".png");
       exec(
@@ -64,6 +85,7 @@ new Vue({
           if (err) {
             // node couldn't execute the command
             console.log(err);
+            cb && cb();
             return;
           }
 
@@ -71,6 +93,7 @@ new Vue({
           console.log(`stdout: ${stdout}`);
           console.log(`stderr: ${stderr}`);
           self.$forceUpdate();
+          cb && cb();
         }
       );
 
@@ -90,13 +113,13 @@ new Vue({
             .then(function(info) {
               const isFileImage = isImage(file);
               self.list.push({
+                id: _.uniqueId(),
                 name: file,
-                duration: isFileImage ? 2 : _.get(item, "streams[0].duration"),
+                duration: isFileImage ? 2 : _.get(info, "streams[0].duration"),
                 isImage: isFileImage,
                 streams: info.streams
               });
-              self.createVideoThumbnail(file);
-              callback();
+              self.createVideoThumbnail(file, callback);
             })
             .catch(function(err) {
               console.error(err);
@@ -127,11 +150,15 @@ new Vue({
     },
     shuffleVideos: function() {
       this.list = _.shuffle(this.list);
-      self.startCreatingVideo(true);
+      this.startCreatingVideo(true);
     },
-    removeVideo: function(index) {
-      this.list.splice(index, 1);
-      self.startCreatingVideo(true);
+    removeVideo: function(id) {
+      const newList = this.list.filter(function(element) {
+        return element.id !== id;
+      });
+      this.list = newList;
+      this.startCreatingVideo(true);
+      this.setActiveElement(null);
     },
     startCreatingVideo: function(isPreview) {
       isPreview = isPreview || false;
@@ -144,24 +171,14 @@ new Vue({
       }
 
       try {
-        fs.unlinkSync(path.join(app.getPath("downloads"), "final.mp4"));
-      } catch (e) {
-        console.error("Couldn't delete final.mp4");
-      }
-
-      try {
-        fs.unlinkSync(path.join(app.getPath("downloads"), "finalwithaudio.mp4"));
-      } catch (e) {
-        console.error("Couldn't delete finalwithaudio.mp4");
-      }
+        fs.unlinkSync(path.join(app.getPath("downloads"), this.videoName + ".mp4"));
+      } catch (e) {}
 
       try {
         fs.unlinkSync(path.join(app.getPath("downloads"), "videos.txt"));
-      } catch (e) {
-        console.error("Couldn't delete videos.txt");
-      }
+      } catch (e) {}
 
-      async.parallel(
+      async.series(
         [
           function(callback) {
             self.createListOfVideos();
@@ -182,7 +199,7 @@ new Vue({
           if (video) {
             video.pause();
 
-            source.setAttribute("src", "file:///Users/michaelcalkins/Downloads/final.mp4");
+            source.setAttribute("src", "file:///Users/michaelcalkins/Downloads/" + this.videoName + ".mp4");
 
             video.load();
             video.play();
@@ -196,9 +213,9 @@ new Vue({
       // audio volume in percentage https://trac.ffmpeg.org/wiki/AudioVolume
 
       const self = this;
+      const killAllCommand = "killall ffmpeg";
       const videosTextFile = path.join(app.getPath("downloads"), "videos.txt");
-      const finalVideoFile = path.join(app.getPath("downloads"), "final.mp4");
-      const finalVideoFileWithAudio = path.join(app.getPath("downloads"), "finalwithaudio.mp4");
+      const finalVideoFile = path.join(app.getPath("downloads"), this.videoName + ".mp4");
       const scalingCommand = isPreview ? "-vf scale=320:-1" : "";
 
       const createVideoCommand =
@@ -207,8 +224,9 @@ new Vue({
         videosTextFile +
         "' " +
         scalingCommand +
-        " -c:a copy " +
-        finalVideoFile;
+        " -c:a copy '" +
+        finalVideoFile +
+        "'";
       const addAudioCommand = this.audioFile
         ? __dirname +
           "/ffmpeg -i '" +
@@ -225,28 +243,39 @@ new Vue({
           "'"
         : "exit";
 
-      exec(createVideoCommand + " && " + addAudioCommand, (err, stdout, stderr) => {
-        self.isRendering = false;
-        if (err) {
-          // node couldn't execute the command
-          console.log(err);
-          return;
-        }
+      async.series(
+        [
+          function(callback) {
+            exec(killAllCommand, () => {
+              callback();
+            });
+          }
+        ],
+        function() {
+          exec(createVideoCommand + " && " + addAudioCommand, (err, stdout, stderr) => {
+            self.isRendering = false;
+            if (err) {
+              // node couldn't execute the command
+              console.log(err);
+              return;
+            }
 
-        // the *entire* stdout and stderr (buffered)
-        console.log(`stdout: ${stdout}`);
-        console.log(`stderr: ${stderr}`);
-        cb && cb();
-      });
+            // the *entire* stdout and stderr (buffered)
+            console.log(`stdout: ${stdout}`);
+            console.log(`stderr: ${stderr}`);
+            cb && cb();
+          });
+        }
+      );
     },
     createListOfVideos: function(listOfVideos) {
       const videosTextFile = path.join(app.getPath("downloads"), "videos.txt");
-      const finalVideoFile = path.join(app.getPath("downloads"), "final.mp4");
+      const finalVideoFile = path.join(app.getPath("downloads"), this.videoName + ".mp4");
       this.list.forEach(function(file) {
         fs.appendFileSync(videosTextFile, "file '" + file.name + "'\n");
 
-        if (file.isFileImage) {
-          fs.appendFileSync(videosTextFile, "duration 3\n");
+        if (file.isImage) {
+          fs.appendFileSync(videosTextFile, "duration " + file.duration + "\n");
         }
       });
     }

@@ -24,6 +24,8 @@
     "is-image": "^2.0.0",
     "lodash": "^4.0.0",
     "sanitize-filename": "^1.6.1",
-    "touch": "^3.1.0"
+    "touch": "^3.1.0",
+    "vue": "^2.5.13",
+    "vuedraggable": "^2.16.0"
   }
 }
