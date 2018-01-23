@@ -12,7 +12,7 @@ const ffprobeStatic = require("ffprobe-static");
 const sanitize = require("sanitize-filename");
 const isImage = require("is-image");
 const draggable = require("vuedraggable");
-const Vue = require("vue/dist/vue.js");
+const Vue = require("vue/dist/vue.min.js");
 
 new Vue({
   el: "#app",
@@ -120,6 +120,7 @@ new Vue({
         properties: ["openFile", "multiSelections"]
       });
       if (!openedFiles) return;
+
       console.log("Importing videos...");
 
       async.each(
@@ -149,6 +150,7 @@ new Vue({
             // All processing will now stop.
             console.log("A file failed to process");
           } else {
+            console.log("Video thumbnails created...");
             self.startCreatingVideo(true);
             self.$forceUpdate();
           }
@@ -177,8 +179,11 @@ new Vue({
       this.setActiveElement(null);
     },
     startCreatingVideo: function(isPreview) {
-      isPreview = isPreview || false;
       const self = this;
+
+      if (this.list.length === 0) return;
+
+      isPreview = isPreview || false;
 
       if (!isPreview) {
         this.isRendering = true;
@@ -186,8 +191,14 @@ new Vue({
         this.isPreviewRendering = true;
       }
 
+      console.log("Deleting old files...");
+
       try {
         fs.unlinkSync(path.join(this.filePath, this.videoName + ".mp4"));
+      } catch (e) {}
+
+      try {
+        fs.unlinkSync(path.join(app.getPath("downloads"), this.videoName + ".mp4"));
       } catch (e) {}
 
       try {
@@ -206,6 +217,7 @@ new Vue({
         ],
         function(err, results) {
           console.log("Video successfully created...");
+
           self.isRendering = false;
           self.isPreviewRendering = false;
 
@@ -264,12 +276,16 @@ new Vue({
       async.series(
         [
           function(callback) {
-            // exec(killAllCommand, () => {
-            callback();
-            // });
+            console.log("Killing existing processes...");
+
+            exec(killAllCommand, () => {
+              callback();
+            });
           }
         ],
         function() {
+          console.log("Executing rendering function...");
+
           exec(createVideoCommand, (err, stdout, stderr) => {
             self.isRendering = false;
             if (err) {
@@ -288,6 +304,7 @@ new Vue({
     },
     createListOfVideos: function(listOfVideos) {
       console.log("Create list of files...");
+
       const videosTextFile = path.join(this.filePath, "videos.txt");
       this.list.forEach(function(file) {
         fs.appendFileSync(videosTextFile, "file '" + file.name + "'\n");

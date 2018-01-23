@@ -31,7 +31,7 @@
             <i class=" fa fa-refresh fa-spin fa-5x fa-fw"></i>
           </div>
 
-          <video v-if="!isPreviewRendering" style="box-shadow: 0 1px 10px 2px rgba(0, 0, 0, 0.3); " class="embed-responsive-item "
+          <video v-if="!isPreviewRendering && list.length > 0" style="box-shadow: 0 1px 10px 2px rgba(0, 0, 0, 0.3); " class="embed-responsive-item "
             controls id="video ">
             <source id="source " :src="videoSrc" />
           </video>
@@ -118,7 +118,10 @@
       </div>
 
       <div class="text-center bgb3 " style="position: absolute; bottom: 0; left: 0; right: 0; padding: 15px; ">
-        <button class="btn btn-primary float-right " v-on:click="startCreatingVideo() ">Create Video ({{getFormattedDuration(videoLength)}})</button>
+        <button class="btn btn-primary float-right" v-on:click="startCreatingVideo()" :class="{ 'disabled': list.length === 0 }">
+          Create Video
+          <span v-if="list.length > 0">({{getFormattedDuration(videoLength)}})</span>
+        </button>
       </div>
     </div>
 
