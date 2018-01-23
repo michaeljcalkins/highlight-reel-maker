@@ -1,12 +1,3 @@
-node_modules
-.sass-cache
-.developer-tools
 .DS_Store
-.idea
-
-builds
 node_modules
-releases
-s3.key
-storage/app/**/*.js
-storage/components/**/*.js
+dist
