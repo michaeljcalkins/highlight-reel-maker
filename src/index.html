@@ -21,7 +21,7 @@
       <div class="row" style="position: absolute; top: 0; left: 15px; right: 15px; padding: 38px 0 0;">
         <div class="offset-sm-2 col-sm-8">
           <input type="text" class="form-control text-center border-top-0 border-right-0 border-left-0 bgb1" placeholder="Write video title here..."
-            v-model="videoName" style="border-radius: 0; outline: none;">
+            v-model="videoNameInput" style="border-radius: 0; outline: none;">
         </div>
       </div>
 
@@ -31,9 +31,9 @@
             <i class=" fa fa-refresh fa-spin fa-5x fa-fw"></i>
           </div>
 
-          <video v-if="!isPreviewRendering && videoName.length > 0" style="box-shadow: 0 1px 10px 2px rgba(0, 0, 0, 0.3); " class="embed-responsive-item "
+          <video v-if="!isPreviewRendering" style="box-shadow: 0 1px 10px 2px rgba(0, 0, 0, 0.3); " class="embed-responsive-item "
             controls id="video ">
-            <source id="source " :src="currentVideoName" />
+            <source id="source " :src="videoSrc" />
           </video>
         </div>
       </div>
@@ -86,7 +86,7 @@
 
           <div v-if="!activeElement" id="parent">
             <div id="stretchable-div">
-              <draggable v-model="list" @start="drag=true" @end="drag=false" @moved="onMoved">
+              <draggable v-model="list" @start="drag=true" @end="drag=false" @moved="onMoved()">
                 <div class="child bgb2" :title="element.name" :style="{ 
                   backgroundImage: 'url(\'file://' + getImageThumbnail(element.name) + '\')' 
                 }" v-for="(element, key) in list" v-on:click="setActiveElement(element)">
@@ -130,10 +130,6 @@
     </div>
   </div>
 
-  <!-- CDN Scripts -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.3/vue.js "></script>
-  <script src="https://cdn.jsdelivr.net/sortable/1.4.2/Sortable.min.js "></script>
-  <script src="https://unpkg.com/vuedraggable@2.16.0/dist/vuedraggable.js "></script>
   <script>
     require('./app.js')
   </script>

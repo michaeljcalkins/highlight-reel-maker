@@ -12,6 +12,7 @@ const ffprobeStatic = require("ffprobe-static");
 const sanitize = require("sanitize-filename");
 const isImage = require("is-image");
 const draggable = require("vuedraggable");
+const Vue = require("vue/dist/vue.js");
 
 new Vue({
   el: "#app",
@@ -24,12 +25,24 @@ new Vue({
     isRendering: false,
     isPreviewRendering: false,
     list: [],
-    videoName: "Untitled",
+    videoNameInput: "",
     audioFile: null
   },
+  beforeCreate: function() {
+    try {
+      fs.mkdirSync(path.join(app.getPath("temp"), "com.michaeljcalkins.awesome-ad-creator"));
+    } catch (e) {}
+  },
   computed: {
-    currentVideoName: function() {
-      return "file:///Users/michaelcalkins/Downloads/" + this.videoName + ".mp4";
+    filePath: function() {
+      return path.join(app.getPath("temp"), "com.michaeljcalkins.awesome-ad-creator");
+    },
+    videoName: function() {
+      return this.videoNameInput || "Untitled";
+    },
+    videoSrc: function() {
+      const videoFile = path.join(this.filePath, this.videoName + ".mp4");
+      return "file://" + videoFile;
     },
     // a computed getter
     videoLength: function() {
@@ -74,11 +87,12 @@ new Vue({
       this.audioFile = null;
     },
     getImageThumbnail(file) {
-      return path.join(app.getPath("downloads"), sanitize(file) + ".png");
+      return path.join(this.filePath, sanitize(file) + ".png");
     },
     createVideoThumbnail: function(file, cb) {
       let self = this;
-      const imageFile = path.join(app.getPath("downloads"), sanitize(file) + ".png");
+      console.log("Creating video thumbnail for " + file);
+      const imageFile = path.join(this.filePath, sanitize(file) + ".png");
       exec(
         __dirname + "/ffmpeg -i '" + file + "' -ss 00:00:00 -vframes 1 '" + imageFile + "'",
         (err, stdout, stderr) => {
@@ -105,6 +119,7 @@ new Vue({
         properties: ["openFile", "multiSelections"]
       });
       if (!openedFiles) return;
+      console.log("Importing videos...");
 
       async.each(
         openedFiles,
@@ -171,11 +186,11 @@ new Vue({
       }
 
       try {
-        fs.unlinkSync(path.join(app.getPath("downloads"), this.videoName + ".mp4"));
+        fs.unlinkSync(path.join(this.filePath, this.videoName + ".mp4"));
       } catch (e) {}
 
       try {
-        fs.unlinkSync(path.join(app.getPath("downloads"), "videos.txt"));
+        fs.unlinkSync(path.join(this.filePath, "videos.txt"));
       } catch (e) {}
 
       async.series(
@@ -199,7 +214,7 @@ new Vue({
           if (video) {
             video.pause();
 
-            source.setAttribute("src", "file:///Users/michaelcalkins/Downloads/" + this.videoName + ".mp4");
+            source.setAttribute("src", this.currentVideoName);
 
             video.load();
             video.play();
@@ -208,14 +223,16 @@ new Vue({
       );
     },
     createOutputVideo: function(isPreview, cb) {
-      console.log("Stitching together videos...");
+      console.log("Starting to create output video...");
 
       // audio volume in percentage https://trac.ffmpeg.org/wiki/AudioVolume
 
       const self = this;
       const killAllCommand = "killall ffmpeg";
-      const videosTextFile = path.join(app.getPath("downloads"), "videos.txt");
-      const finalVideoFile = path.join(app.getPath("downloads"), this.videoName + ".mp4");
+      const videosTextFile = path.join(this.filePath, "videos.txt");
+      const finalVideoFile = isPreview
+        ? path.join(this.filePath, this.videoName + ".mp4")
+        : path.join(app.getPath("downloads"), this.videoName + ".mp4");
       const scalingCommand = isPreview ? "-vf scale=320:-1" : "";
 
       const createVideoCommand =
@@ -246,13 +263,13 @@ new Vue({
       async.series(
         [
           function(callback) {
-            exec(killAllCommand, () => {
-              callback();
-            });
+            // exec(killAllCommand, () => {
+            callback();
+            // });
           }
         ],
         function() {
-          exec(createVideoCommand + " && " + addAudioCommand, (err, stdout, stderr) => {
+          exec(createVideoCommand, (err, stdout, stderr) => {
             self.isRendering = false;
             if (err) {
               // node couldn't execute the command
@@ -269,8 +286,8 @@ new Vue({
       );
     },
     createListOfVideos: function(listOfVideos) {
-      const videosTextFile = path.join(app.getPath("downloads"), "videos.txt");
-      const finalVideoFile = path.join(app.getPath("downloads"), this.videoName + ".mp4");
+      console.log("Create list of files...");
+      const videosTextFile = path.join(this.filePath, "videos.txt");
       this.list.forEach(function(file) {
         fs.appendFileSync(videosTextFile, "file '" + file.name + "'\n");
 
