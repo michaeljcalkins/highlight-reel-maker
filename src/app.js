@@ -67,20 +67,6 @@ new Vue({
       this.list.splice(activeIndex, 1, this.activeElement);
       this.setActiveElement(null);
     },
-    importAudioFile: function() {
-      self = this;
-      var openedFile = dialog.showOpenDialog({
-        properties: ["openFile"]
-      });
-      if (!openedFile) return;
-
-      this.audioFile = {
-        name: openedFile[0]
-      };
-    },
-    removeAudioFile: function() {
-      this.audioFile = null;
-    },
     getImageThumbnail(file) {
       return path.join(this.filePath, sanitize(file) + ".png");
     },
