@@ -58,6 +58,7 @@ new Vue({
   },
   methods: {
     onMoved: function() {
+      console.log("Video has moved...");
       this.startCreatingVideo(true);
     },
     setActiveView: function(view) {

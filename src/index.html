@@ -86,7 +86,7 @@
 
           <div v-if="!activeElement" id="parent">
             <div id="stretchable-div">
-              <draggable v-model="list" @start="drag=true" @end="drag=false" @moved="onMoved()">
+              <draggable v-model="list" @start="drag=true" @end="drag=false; onMoved()">
                 <div class="child bgb2" :title="element.name" :style="{ 
                   backgroundImage: 'url(\'file://' + getImageThumbnail(element.name) + '\')' 
                 }" v-for="(element, key) in list" v-on:click="setActiveElement(element)">
