@@ -34,8 +34,12 @@ html {
   background: #141414;
 }
 
-.tcw {
+.tcg {
   color: #a5a6a6;
+}
+
+.tcw {
+  color: #fff;
 }
 
 .mt38 {
@@ -58,18 +62,6 @@ html {
   align-items: center;
 }
 
-#parent {
-  width: 100%;
-  height: 161px;
-  overflow-x: scroll;
-  overflow-y: hidden;
-}
-
-#stretchable-div {
-  width: 100%;
-  white-space: nowrap;
-}
-
 .child {
   background-size: cover;
   background-repeat: no-repeat;
@@ -77,6 +69,7 @@ html {
   position: relative;
   width: 242px;
   height: 136px;
-  margin-right: 10px;
+  margin: 0 0 15px 15px;
+  vertical-align: top;
   display: inline-block;
 }
